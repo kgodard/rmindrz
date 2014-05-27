@@ -1,0 +1,40 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.3.6)
+    builder (3.2.2)
+    data_objects (0.10.14)
+      addressable (~> 2.1)
+    dm-core (1.2.1)
+      addressable (~> 2.3)
+    dm-do-adapter (1.2.0)
+      data_objects (~> 0.10.6)
+      dm-core (~> 1.2.0)
+    dm-migrations (1.2.0)
+      dm-core (~> 1.2.0)
+    dm-postgres-adapter (1.2.0)
+      dm-do-adapter (~> 1.2.0)
+      do_postgres (~> 0.10.6)
+    dm-sqlite-adapter (1.2.0)
+      dm-do-adapter (~> 1.2.0)
+      do_sqlite3 (~> 0.10.6)
+    do_postgres (0.10.14)
+      data_objects (= 0.10.14)
+    do_sqlite3 (0.10.14)
+      data_objects (= 0.10.14)
+    jwt (1.0.0)
+    multi_json (1.10.1)
+    twilio-ruby (3.11.5)
+      builder (>= 2.1.2)
+      jwt (>= 0.1.2)
+      multi_json (>= 1.3.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dm-core
+  dm-migrations
+  dm-postgres-adapter
+  dm-sqlite-adapter
+  twilio-ruby
