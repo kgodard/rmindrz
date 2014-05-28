@@ -9,10 +9,12 @@ DataMapper.setup( :default, "sqlite3://#{Dir.pwd}/test1.db" )
 class Reminder
   include DataMapper::Resource
 
-  Reminder.property(:id, Serial)
-  Reminder.property(:what, String, :required => true)
-  Reminder.property(:when, Integer, :required => true)
-  Reminder.property(:for, String, :required => true)
+  property :id, Serial
+  property :what, String, :required => true
+  property :when, Integer, :required => true
+  property :for, String, :required => true
+  property :dead, Boolean, :default => false
+  property :updated_at, DateTime
 end
 
 DataMapper.finalize
@@ -38,19 +40,50 @@ def twilio_messages
   twilio_client.account.messages.list
 end
 
-def incoming_messages
-  twilio_messages.select {|m| m.direction == 'inbound'}
+def incoming_messages(since = last_reminder_time)
+  inbound_messages = twilio_messages.select {|m| m.direction == 'inbound'}
+  since ? inbound_messages.select {|m| DateTime.parse(m.date_created) > since} : inbound_messages
 end
 
-def set_new_reminders
-  # read message list and add any new reminders
+def last_reminder_time
+  last = Reminder.all(order: :updated_at).last
+  last ? last.updated_at : nil
+end
+
+def process_messages
   incoming_messages.each do |message|
+    process_message(message)
+  end
+end
+
+def process_message(message)
+  if kill_message?(message)
+    kill_reminder(message)
+  else
     create_reminder(message)
   end
 end
 
+def kill_reminder(message)
+  reminder_id = message.body.strip.split.last.to_i
+  if reminder_id > 0 && reminder = Reminder.get(reminder_id)
+    puts "reminder found: #{reminder_id}"
+    reminder.update(dead: true, updated_at: Time.now.utc)
+  else
+    puts "No reminder found for id: #{reminder_id}"
+  end
+end
+
+def kill_message?(message)
+  message.body =~ /^kill/i
+end
+
 def create_reminder(message)
-  Reminder.create(reminder_params(message)) unless existing_reminder?(message)
+  Reminder.create(new_reminder_params(message)) unless existing_reminder?(message)
+end
+
+def new_reminder_params(message)
+  reminder_params(message).merge(updated_at: Time.now.utc)
 end
 
 def reminder_params(message)
@@ -61,19 +94,19 @@ def reminder_params(message)
 end
 
 def existing_reminder?(message)
-  Reminder.first(reminder_params(message))
+  Reminder.first(reminder_params(message).merge(dead: false))
 end
 
 def todays_reminders
-  today = Time.now.utc.day
-  Reminder.all(when: today)
+  today = Time.now.day
+  Reminder.all(when: today, dead: false)
 end
 
 def send_reminder(reminder)
   twilio_client.account.messages.create(
     from: twilio_number,
     to: reminder.for,
-    body: reminder.what
+    body: "[#{reminder.id}] #{reminder.what}"
   )
 end
 
