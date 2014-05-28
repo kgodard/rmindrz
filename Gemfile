@@ -6,6 +6,4 @@ gem 'dm-postgres-adapter', :group => :production
 gem 'dm-migrations'
 gem 'twilio-ruby'
 
-group :test, :development do
-  gem 'dm-sqlite-adapter'
-end
+gem 'dm-sqlite-adapter'
