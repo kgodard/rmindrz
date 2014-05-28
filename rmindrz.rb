@@ -4,7 +4,7 @@ require 'dm-core'
 require 'dm-migrations'
 require 'twilio-ruby'
 
-DataMapper.setup( :default, "sqlite3://#{Dir.pwd}/test1.db" )
+DataMapper.setup( :default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/test1.db" )
 
 class Reminder
   include DataMapper::Resource
