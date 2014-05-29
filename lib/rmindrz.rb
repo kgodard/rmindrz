@@ -95,7 +95,7 @@ class Manager
     end
 
     def reminder_params(message)
-      text, day = message.body.strip.split(/ on /)
+      text, day = message.body.strip.split(/ on /i)
       day = day.to_i
       day += 1 if day == 0
       {what: text, when: day, for: message.from}
